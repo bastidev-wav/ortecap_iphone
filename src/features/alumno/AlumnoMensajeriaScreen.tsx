@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { friendlyErrorMessage, useApiQuery } from '../../core/hooks/useApiQuery';
-import { AsyncGate } from '../../shared/components/AsyncGate';
+import { AlumnoAsyncGate } from './AlumnoAsyncGate';
 import { ChatView } from '../../shared/components/ChatView';
 import { showToast } from '../../shared/components/Toast';
 import { AlumnoRepository } from './alumnoRepository';
@@ -10,7 +10,7 @@ export function AlumnoMensajeriaScreen() {
   const { data, loading, error, refetch } = useApiQuery(() => AlumnoRepository.mensajeria());
 
   return (
-    <AsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
+    <AlumnoAsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
       {(mensajes) => (
         <ChatView
           mensajes={mensajes.map((m) => ({ texto: String(m.mensaje ?? ''), esMio: m.remitente_tipo === 'alumno' }))}
@@ -25,6 +25,6 @@ export function AlumnoMensajeriaScreen() {
           }}
         />
       )}
-    </AsyncGate>
+    </AlumnoAsyncGate>
   );
 }

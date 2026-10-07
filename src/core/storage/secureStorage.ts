@@ -87,6 +87,20 @@ async function readDeviceTrustToken(rut: string): Promise<string | null> {
   return getItem(`${KEY_DEVICE_TRUST_PREFIX}${rut}`);
 }
 
+/** Preferencias simples de la app (no sensibles), guardadas como JSON. */
+async function readPref<T>(key: string, fallback: T): Promise<T> {
+  try {
+    const raw = await getItem(`pref_${key}`);
+    return raw ? { ...fallback, ...JSON.parse(raw) } : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function writePref(key: string, value: unknown): Promise<void> {
+  await setItem(`pref_${key}`, JSON.stringify(value));
+}
+
 export const SecureStorageService = {
   saveSession,
   readToken,
@@ -96,4 +110,6 @@ export const SecureStorageService = {
   getOrCreateDeviceId,
   saveDeviceTrustToken,
   readDeviceTrustToken,
+  readPref,
+  writePref,
 };

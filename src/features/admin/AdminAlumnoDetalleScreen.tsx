@@ -66,7 +66,6 @@ export function AdminAlumnoDetalleScreen() {
           const matricula = detalle.matricula as Record<string, unknown> | null;
           const documentos = (detalle.documentos as Record<string, unknown>[]) ?? [];
           const recibos = (detalle.recibos_pago as Record<string, unknown>[]) ?? [];
-          const statsSimulador = detalle.stats_simulador as Record<string, unknown> | null;
 
           return (
             <>
@@ -116,16 +115,16 @@ export function AdminAlumnoDetalleScreen() {
                 </>
               ) : null}
 
-              {statsSimulador ? (
-                <>
-                  <SectionHeader title="Simulador teórico" />
-                  <Card style={styles.miniStatsRow}>
-                    <MiniStat label="Intentos" value={String(statsSimulador.total_intentos ?? 0)} />
-                    <MiniStat label="Mejor puntaje" value={String(statsSimulador.mejor_puntaje ?? 0)} />
-                    <MiniStat label="Aprobado" value={statsSimulador.aprobado === true ? 'Sí' : 'No'} />
-                  </Card>
-                </>
-              ) : null}
+              <TouchableOpacity onPress={() => router.push(`/admin/alumnos/${rut}/hojas-ruta`)}>
+                <Card style={styles.linkCard}>
+                  <Ionicons name="car-outline" size={22} color={AppColors.primary} />
+                  <View style={styles.flex1}>
+                    <Text style={styles.linkTitulo}>Resumen de hojas de ruta</Text>
+                    <Text style={styles.linkSubtitulo}>Sesiones, horas, aprobadas y km (para certificación)</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={AppColors.textSecondary} />
+                </Card>
+              </TouchableOpacity>
 
               {documentos.length > 0 ? (
                 <>
@@ -177,15 +176,6 @@ function EstadoTile({ label, estado, onPress }: { label: string; estado: string;
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.miniStat}>
-      <Text style={styles.miniStatValue}>{value}</Text>
-      <Text style={styles.miniStatLabel}>{label}</Text>
-    </View>
-  );
-}
-
 function capitalizar(s: string) {
   return s ? s[0].toUpperCase() + s.slice(1) : s;
 }
@@ -200,10 +190,9 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: AppColors.border, marginVertical: 12 },
   estadoTile: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, gap: 8 },
   estadoLabel: { flex: 1, fontWeight: '600', color: AppColors.textPrimary },
-  miniStatsRow: { flexDirection: 'row', justifyContent: 'space-around' },
-  miniStat: { alignItems: 'center' },
-  miniStatValue: { fontSize: 18, fontWeight: '800', color: AppColors.primary },
-  miniStatLabel: { fontSize: 11, color: AppColors.textSecondary, marginTop: 4 },
+  linkCard: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
+  linkTitulo: { fontWeight: '700', color: AppColors.textPrimary },
+  linkSubtitulo: { fontSize: 12, color: AppColors.textSecondary, marginTop: 2 },
   docRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, gap: 10 },
   docLabel: { fontSize: 13, color: AppColors.textPrimary },
   reciboSubtitle: { fontSize: 11, color: AppColors.textSecondary, marginTop: 2 },

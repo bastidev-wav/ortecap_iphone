@@ -6,7 +6,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } fr
 import { useApiQuery } from '../../core/hooks/useApiQuery';
 import { formatFecha } from '../../core/utils/formatters';
 import { AppColors } from '../../core/theme/colors';
-import { AsyncGate } from '../../shared/components/AsyncGate';
+import { AlumnoAsyncGate } from './AlumnoAsyncGate';
 import { Card } from '../../shared/components/Card';
 import { EmptyView } from '../../shared/components/StateViews';
 import { AutoStatusBadge, StatusBadge } from '../../shared/components/StatusBadge';
@@ -17,7 +17,7 @@ export function AlumnoEvaluacionesScreen() {
   const { data, loading, error, refetch } = useApiQuery(() => AlumnoRepository.evaluaciones());
 
   return (
-    <AsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
+    <AlumnoAsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
       {(evaluaciones) => {
         if (evaluaciones.length === 0) return <EmptyView message="Aún no tienes evaluaciones prácticas." icon="clipboard-outline" />;
         return (
@@ -49,7 +49,7 @@ export function AlumnoEvaluacionesScreen() {
           />
         );
       }}
-    </AsyncGate>
+    </AlumnoAsyncGate>
   );
 }
 

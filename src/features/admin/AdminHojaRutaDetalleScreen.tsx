@@ -1,8 +1,12 @@
 import { useLocalSearchParams } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { useApiQuery } from '../../core/hooks/useApiQuery';
+import { friendlyErrorMessage, useApiQuery } from '../../core/hooks/useApiQuery';
+import { Button } from '../../shared/components/Button';
+import { showToast } from '../../shared/components/Toast';
+import { showConfirmDialog } from '../../shared/dialogs';
+import { AdminCorregirHojaModal } from './AdminCorregirHojaModal';
 import { formatFecha, formatHora } from '../../core/utils/formatters';
 import { AppColors } from '../../core/theme/colors';
 import { AsyncGate } from '../../shared/components/AsyncGate';
@@ -23,6 +27,22 @@ export function AdminHojaRutaDetalleScreen() {
   const hojaRutaId = Number(id);
   const { data, loading, error, refetch } = useApiQuery(() => AdminRepository.hojaRutaDetalle(hojaRutaId), [hojaRutaId]);
   const { data: mapa, loading: loadingMapa } = useApiQuery(() => AdminRepository.hojaRutaMapa(hojaRutaId), [hojaRutaId]);
+  const [corregirVisible, setCorregirVisible] = useState(false);
+
+  const intercambiarFirmas = async () => {
+    const ok = await showConfirmDialog({
+      title: 'Intercambiar firmas',
+      message: 'Úsalo solo si la firma del instructor quedó como la del alumno y viceversa.',
+      confirmLabel: 'Intercambiar',
+    });
+    if (!ok) return;
+    try {
+      showToast((await AdminRepository.intercambiarFirmas(hojaRutaId)) || 'Firmas intercambiadas.');
+      refetch();
+    } catch (e) {
+      showToast(friendlyErrorMessage(e), true);
+    }
+  };
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
@@ -98,6 +118,25 @@ export function AdminHojaRutaDetalleScreen() {
                   <Text style={styles.observaciones}>{String(ruta.observaciones)}</Text>
                 </>
               ) : null}
+
+              {ruta.estado === 'finalizada' ? (
+                <View style={styles.acciones}>
+                  <Button label="Corregir hoja de ruta" variant="outline" onPress={() => setCorregirVisible(true)} />
+                  <Button label="Intercambiar firmas (quedaron al revés)" variant="text" onPress={intercambiarFirmas} />
+                </View>
+              ) : null}
+
+              <AdminCorregirHojaModal
+                visible={corregirVisible}
+                onClose={() => setCorregirVisible(false)}
+                ruta={ruta}
+                items={items}
+                evaluacionActual={evaluacion as Record<string, string>}
+                onGuardado={() => {
+                  setCorregirVisible(false);
+                  refetch();
+                }}
+              />
             </>
           );
         }}
@@ -107,6 +146,7 @@ export function AdminHojaRutaDetalleScreen() {
 }
 
 const styles = StyleSheet.create({
+  acciones: { marginTop: 24, gap: 8 },
   flex: { flex: 1, backgroundColor: AppColors.background },
   flex1: { flex: 1 },
   content: { padding: 16, paddingBottom: 40 },

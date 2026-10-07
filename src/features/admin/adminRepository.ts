@@ -302,19 +302,165 @@ export const AdminRepository = {
     return dataAsMap(r);
   },
 
-  // ---------------- Simulador (banco de preguntas) ----------------
-  async simuladorResumen() {
-    const r = await ApiClient.get('/admin/simulador');
+  // ---------------- Buzón de sugerencias ----------------
+  async retroalimentaciones(tipo?: string) {
+    const r = await ApiClient.get('/admin/retroalimentaciones', tipo ? { tipo } : undefined);
     return dataAsMap(r);
   },
 
-  async simuladorCategorias() {
-    const r = await ApiClient.get('/admin/simulador/categorias');
+  async marcarRetroalimentacionLeida(id: number) {
+    await ApiClient.post(`/admin/retroalimentaciones/${id}/leido`);
+  },
+
+  async responderRetroalimentacion(id: number, respuesta: string) {
+    await ApiClient.post(`/admin/retroalimentaciones/${id}/responder`, { respuesta });
+  },
+
+  // ---------------- Horario de referencia (cursos sin reserva) ----------------
+  async horarioReferencia(cursoId?: number) {
+    const r = await ApiClient.get('/admin/horario-referencia', cursoId ? { curso_id: cursoId } : undefined);
+    return dataAsMap(r);
+  },
+
+  async agregarBloqueHorario(datos: { curso_id: number; dia_semana: number; hora_inicio: string; hora_fin: string; modulo?: string; responsable?: string }) {
+    await ApiClient.post('/admin/horario-referencia', datos);
+  },
+
+  async eliminarBloqueHorario(id: number) {
+    await ApiClient.delete(`/admin/horario-referencia/${id}`);
+  },
+
+  // ---------------- Agenda de matrículas presenciales ----------------
+  async jornadasMatricula(params: { desde?: string; hasta?: string; localidadId?: number; q?: string } = {}) {
+    const r = await ApiClient.get('/admin/agenda-matriculas', {
+      ...(params.desde ? { desde: params.desde } : {}),
+      ...(params.hasta ? { hasta: params.hasta } : {}),
+      ...(params.localidadId ? { localidad_id: params.localidadId } : {}),
+      ...(params.q ? { q: params.q } : {}),
+    });
+    return dataAsMap(r);
+  },
+
+  async jornadaMatricula(id: number) {
+    const r = await ApiClient.get(`/admin/agenda-matriculas/${id}`);
+    return dataAsMap(r);
+  },
+
+  async crearJornadaMatricula(datos: Record<string, unknown>) {
+    const r = await ApiClient.post('/admin/agenda-matriculas', datos);
+    return { id: dataAsMap(r).id as number, mensaje: r.message, horarios: Number(dataAsMap(r).horarios_creados ?? 0) };
+  },
+
+  async actualizarJornadaMatricula(id: number, datos: Record<string, unknown>) {
+    await ApiClient.put(`/admin/agenda-matriculas/${id}`, datos);
+  },
+
+  async eliminarJornadaMatricula(id: number) {
+    await ApiClient.delete(`/admin/agenda-matriculas/${id}`);
+  },
+
+  async agregarCupoMatricula(jornadaId: number, hora: string) {
+    await ApiClient.post(`/admin/agenda-matriculas/${jornadaId}/cupos`, { hora });
+  },
+
+  async agendarCupoMatricula(cupoId: number, datos: { nombre: string; telefono?: string; rut?: string; correo?: string }) {
+    await ApiClient.post(`/admin/agenda-matriculas/cupos/${cupoId}/agendar`, datos);
+  },
+
+  async eliminarCupoMatricula(cupoId: number) {
+    await ApiClient.delete(`/admin/agenda-matriculas/cupos/${cupoId}`);
+  },
+
+  /** Datos de la persona agendada para abrir "Matricular alumno" ya rellenado. */
+  async prellenadoCupo(cupoId: number) {
+    const r = await ApiClient.get(`/admin/agenda-matriculas/cupos/${cupoId}/prellenado`);
+    return dataAsMap(r);
+  },
+
+  // ---------------- Correos a alumnos ----------------
+  async destinatariosCorreo(params: { modo: 'todos' | 'sin_ingresar' | 'uno'; rut?: string; cursoId?: string; localidadId?: string }) {
+    const r = await ApiClient.post('/admin/correos/destinatarios', {
+      modo: params.modo,
+      ...(params.rut ? { rut: params.rut } : {}),
+      ...(params.cursoId ? { curso_id: params.cursoId } : {}),
+      ...(params.localidadId ? { localidad_id: params.localidadId } : {}),
+    });
+    return dataAsMap(r);
+  },
+
+  async buscarAlumnoCorreo(q: string) {
+    const r = await ApiClient.get('/admin/correos/buscar-alumno', { q });
     return dataAsList(r);
   },
 
-  async simuladorPreguntas(categoria?: number) {
-    const r = await ApiClient.get('/admin/simulador/preguntas', categoria !== undefined ? { categoria } : undefined);
+  async previsualizarCorreo(asunto: string, cuerpoHtml: string): Promise<string> {
+    const r = await ApiClient.post('/admin/correos/previsualizar', { asunto, cuerpo_b64: aBase64(cuerpoHtml) });
+    return String(dataAsMap(r).html ?? '');
+  },
+
+  /** Envía a hasta 10 alumnos (o solo a [pruebaA]). Cada alumno recibe un correo individual. */
+  async enviarLoteCorreo(params: { asunto: string; cuerpoHtml: string; ruts?: string[]; pruebaA?: string }) {
+    const r = await ApiClient.post('/admin/correos/enviar-lote', {
+      asunto: params.asunto,
+      cuerpo_b64: aBase64(params.cuerpoHtml),
+      ...(params.pruebaA ? { prueba_a: params.pruebaA } : { ruts: params.ruts ?? [] }),
+    });
+    return dataAsMap(r);
+  },
+
+  // ---------------- Supervisión de hojas de ruta ----------------
+  async sesionesAbiertas() {
+    const r = await ApiClient.get('/admin/vehiculos/sesiones-abiertas');
     return dataAsList(r);
   },
+
+  async forzarCierreSesion(id: number) {
+    const r = await ApiClient.post('/admin/vehiculos/forzar-cierre', { id });
+    return r.message;
+  },
+
+  async intercambiarFirmas(hojaRutaId: number) {
+    const r = await ApiClient.post(`/admin/hojas-ruta/${hojaRutaId}/intercambiar-firmas`);
+    return r.message;
+  },
+
+  async resumenHojasAlumno(rut: string) {
+    const r = await ApiClient.get(`/admin/hojas-ruta/alumno/${rut}/resumen`);
+    return dataAsMap(r);
+  },
+
+  // ---------------- Auditoría de horas / hojas de ruta faltantes ----------------
+  async auditoriaHoras(params: { desde?: string; hasta?: string } = {}) {
+    const r = await ApiClient.get('/admin/vehiculos/auditoria-horas', {
+      ...(params.desde ? { fecha_desde: params.desde } : {}),
+      ...(params.hasta ? { fecha_hasta: params.hasta } : {}),
+    });
+    return dataAsMap(r);
+  },
+
+  /** Hoja de ruta de una clase realizada. Si no existe, lanza 404 con data.puede_crear_hoja. */
+  async hojaRutaDeClase(agendaId: number): Promise<number> {
+    const r = await ApiClient.get(`/admin/agenda/${agendaId}/hoja-ruta`);
+    return Number(dataAsMap(r).hoja_ruta_id);
+  },
+
+  async formularioHojaFaltante(agendaId: number) {
+    const r = await ApiClient.get(`/admin/agenda/${agendaId}/hoja-ruta-faltante`);
+    return dataAsMap(r);
+  },
+
+  async crearHojaFaltante(agendaId: number, datos: Record<string, unknown>) {
+    const r = await ApiClient.post(`/admin/agenda/${agendaId}/hoja-ruta-faltante`, datos);
+    return { hojaRutaId: Number(dataAsMap(r).hoja_ruta_id), mensaje: r.message };
+  },
 };
+
+/** El backend acepta el HTML del correo en base64 para que el firewall no bloquee etiquetas. */
+function aBase64(texto: string): string {
+  const bytes = new TextEncoder().encode(texto);
+  let binario = '';
+  bytes.forEach((b) => {
+    binario += String.fromCharCode(b);
+  });
+  return globalThis.btoa(binario);
+}

@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { friendlyErrorMessage, useApiQuery } from '../../core/hooks/useApiQuery';
 import { formatFecha } from '../../core/utils/formatters';
 import { AppColors } from '../../core/theme/colors';
-import { AsyncGate } from '../../shared/components/AsyncGate';
+import { AlumnoAsyncGate } from './AlumnoAsyncGate';
 import { Button } from '../../shared/components/Button';
 import { Card } from '../../shared/components/Card';
 import { InfoRow, SectionHeader } from '../../shared/components/CommonWidgets';
@@ -27,7 +27,7 @@ export function AlumnoEvaluacionDetalleScreen() {
 
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
-      <AsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
+      <AlumnoAsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
         {(detalle) => {
           const ruta = detalle.ruta as Record<string, unknown>;
           const items = (detalle.items as Record<string, unknown>) ?? {};
@@ -96,7 +96,7 @@ export function AlumnoEvaluacionDetalleScreen() {
             </>
           );
         }}
-      </AsyncGate>
+      </AlumnoAsyncGate>
     </ScrollView>
   );
 }

@@ -20,8 +20,11 @@ export default function AlumnoLayout() {
       <Stack.Screen name="documentos/contrato" options={{ title: 'Contrato de matrícula' }} />
       <Stack.Screen name="evaluaciones/index" options={{ title: 'Mis evaluaciones' }} />
       <Stack.Screen name="evaluaciones/[id]" options={{ title: 'Detalle de evaluación' }} />
-      <Stack.Screen name="simulador/index" options={{ title: 'Simulador teórico' }} />
-      <Stack.Screen name="simulador/examen" options={{ title: 'Examen teórico' }} />
+      <Stack.Screen name="constancias/index" options={{ title: 'Constancias de asistencia' }} />
+      <Stack.Screen name="constancias/[id]" options={{ title: 'Constancia' }} />
+      <Stack.Screen name="buzon" options={{ title: 'Buzón de sugerencias' }} />
+      <Stack.Screen name="cuenta" options={{ title: 'Mi cuenta' }} />
+      <Stack.Screen name="recordatorios" options={{ title: 'Recordatorios' }} />
     </Stack>
   );
 }

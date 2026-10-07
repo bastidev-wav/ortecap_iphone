@@ -1,10 +1,12 @@
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ApiException } from '../../core/api/apiTypes';
 import { friendlyErrorMessage } from '../../core/hooks/useApiQuery';
+import { formatHora } from '../../core/utils/formatters';
 import { AppColors } from '../../core/theme/colors';
 import { Button } from '../../shared/components/Button';
 import { Select } from '../../shared/components/Select';
@@ -17,12 +19,15 @@ export function InstructorIniciarRutaModal({
   onClose,
   vehiculosDisponibles,
   alumnoDetectado,
+  clasesHoy = [],
   onIniciado,
 }: {
   visible: boolean;
   onClose: () => void;
   vehiculosDisponibles: Record<string, unknown>[];
   alumnoDetectado: Record<string, unknown> | null;
+  /** Clases reservadas de hoy: atajo para elegir al alumno (la detección es solo una sugerencia). */
+  clasesHoy?: Record<string, unknown>[];
   onIniciado: () => void;
 }) {
   const router = useRouter();
@@ -77,6 +82,21 @@ export function InstructorIniciarRutaModal({
       onIniciado();
       router.push(`/instructor/vehiculos/hoja-ruta/${hojaRutaId}`);
     } catch (e) {
+      // v2: no se puede abrir una ruta nueva mientras otra siga sin cerrar.
+      const abierta = e instanceof ApiException && e.statusCode === 409 ? Number(e.errors?.hoja_ruta_abierta_id) : NaN;
+      if (abierta) {
+        Alert.alert('Tienes una ruta sin cerrar', (e as ApiException).message, [
+          { text: 'Ahora no', style: 'cancel' },
+          {
+            text: 'Ir a esa ruta',
+            onPress: () => {
+              onIniciado();
+              router.push(`/instructor/vehiculos/hoja-ruta/${abierta}`);
+            },
+          },
+        ]);
+        return;
+      }
       showToast(friendlyErrorMessage(e), true);
     }
   };
@@ -85,13 +105,16 @@ export function InstructorIniciarRutaModal({
     { label: 'Selecciona un vehículo', value: '' },
     ...vehiculosDisponibles.map((v) => ({ label: `${v.marca} ${v.modelo} · ${v.patente}`, value: String(v.id) })),
   ];
-  const alumnoOptions = [
-    { label: 'Sin alumno', value: '' },
-    ...misAlumnos.map((a) => ({
-      label: `${a.nombres} ${a.apellidos ?? ''}`,
-      value: String(a.alumno_rut ?? a.rut ?? ''),
-    })),
-  ];
+  const alumnoOptions = [{ label: 'Sin alumno', value: '' }];
+  const vistos = new Set<string>(['']);
+  const candidatos: Record<string, unknown>[] = [...clasesHoy, ...misAlumnos];
+  for (const a of candidatos) {
+    const rut = String(a.alumno_rut ?? a.rut ?? '');
+    if (vistos.has(rut)) continue;
+    vistos.add(rut);
+    alumnoOptions.push({ label: `${a.nombres ?? ''} ${a.apellidos ?? ''}`.trim() || rut, value: rut });
+  }
+  const clasesConAlumno = clasesHoy.filter((c) => c.alumno_rut);
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -110,6 +133,29 @@ export function InstructorIniciarRutaModal({
           ) : null}
 
           <Select label="Vehículo" value={vehiculoId} options={vehiculoOptions} onChange={setVehiculoId} />
+
+          {clasesConAlumno.length > 0 ? (
+            <View style={styles.clasesHoy}>
+              <Text style={styles.clasesHoyLabel}>Tus clases de hoy</Text>
+              <View style={styles.chips}>
+                {clasesConAlumno.map((c) => {
+                  const sel = alumnoRut === c.alumno_rut;
+                  return (
+                    <TouchableOpacity
+                      key={String(c.id)}
+                      style={[styles.chip, sel && styles.chipSel]}
+                      onPress={() => setAlumnoRut(String(c.alumno_rut))}
+                    >
+                      <Text style={[styles.chipText, sel && styles.chipTextSel]}>
+                        {formatHora(c.hora_inicio as string)} · {String(c.nombres ?? '')}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
           <Select label="Alumno (opcional)" value={alumnoRut} options={alumnoOptions} onChange={setAlumnoRut} />
           <TextField label="Kilometraje actual" keyboardType="number-pad" value={km} onChangeText={setKm} />
 
@@ -146,4 +192,11 @@ const styles = StyleSheet.create({
   checkRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   checkLabel: { color: AppColors.textPrimary },
   submitButton: { marginTop: 8 },
+  clasesHoy: { marginBottom: 12 },
+  clasesHoyLabel: { color: AppColors.textSecondary, fontSize: 13, marginBottom: 6, fontWeight: '600' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: AppColors.border },
+  chipSel: { backgroundColor: AppColors.primary, borderColor: AppColors.primary },
+  chipText: { fontSize: 13, color: AppColors.textPrimary },
+  chipTextSel: { color: '#FFFFFF', fontWeight: '700' },
 });

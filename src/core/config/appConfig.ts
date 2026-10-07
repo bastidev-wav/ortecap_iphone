@@ -6,8 +6,8 @@
  * EXPO_PUBLIC_API_BASE_URL (ver app.json / eas.json por perfil de build).
  */
 export const AppConfig = {
-  /** URL base de la API, SIN slash final. Ej: https://ortecap.cl/api/v1 */
-  apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://ortecap.cl/api/v1',
+  /** URL base de la API, SIN slash final. Ej: https://ortecap.cl/api/v2 */
+  apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://ortecap.cl/api/v2',
 
   /** Timeout de conexión/respuesta para todas las llamadas HTTP (ms). */
   connectTimeoutMs: 15000,

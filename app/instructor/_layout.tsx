@@ -18,6 +18,8 @@ export default function InstructorLayout() {
       <Stack.Screen name="alumnos/[id]" options={{ title: 'Ficha del alumno' }} />
       <Stack.Screen name="vehiculos/hoja-ruta/[id]" options={{ title: 'Hoja de ruta' }} />
       <Stack.Screen name="evaluacion/[agendaId]" options={{ title: 'Evaluación práctica' }} />
+      <Stack.Screen name="cuenta" options={{ title: 'Mi cuenta' }} />
+      <Stack.Screen name="recordatorios" options={{ title: 'Recordatorios' }} />
     </Stack>
   );
 }

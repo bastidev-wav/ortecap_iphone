@@ -79,6 +79,11 @@ export function LoginScreen() {
         <View style={styles.submitButton}>
           <Button label="Ingresar" onPress={submit} icon={<Ionicons name="log-in-outline" size={18} color="#FFFFFF" />} />
         </View>
+
+        <TouchableOpacity style={styles.helpLink} onPress={() => router.push('/soporte')}>
+          <Ionicons name="help-circle-outline" size={18} color={AppColors.textSecondary} />
+          <Text style={styles.helpLinkText}>¿Necesitas ayuda? Escríbenos</Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -103,4 +108,6 @@ const styles = StyleSheet.create({
   },
   errorText: { color: AppColors.danger, fontSize: 13, marginLeft: 8, flex: 1 },
   submitButton: { marginTop: 20 },
+  helpLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 24 },
+  helpLinkText: { color: AppColors.textSecondary, fontWeight: '600' },
 });

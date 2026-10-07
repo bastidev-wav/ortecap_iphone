@@ -4,7 +4,7 @@ import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native
 
 import { useApiQuery } from '../../core/hooks/useApiQuery';
 import { AppColors } from '../../core/theme/colors';
-import { AsyncGate } from '../../shared/components/AsyncGate';
+import { AlumnoAsyncGate } from './AlumnoAsyncGate';
 import { Card } from '../../shared/components/Card';
 import { SectionHeader } from '../../shared/components/CommonWidgets';
 import { EmptyView } from '../../shared/components/StateViews';
@@ -28,7 +28,7 @@ export function AlumnoHorarioReferenciaScreen() {
   const { data, loading, error, refetch } = useApiQuery(() => AlumnoRepository.horarioReferencia());
 
   return (
-    <AsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
+    <AlumnoAsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
       {(datos) => {
         const matricula = datos.matricula as Record<string, unknown> | null;
         const horario = (datos.horario as Record<string, unknown>[]) ?? [];
@@ -84,7 +84,7 @@ export function AlumnoHorarioReferenciaScreen() {
           </ScrollView>
         );
       }}
-    </AsyncGate>
+    </AlumnoAsyncGate>
   );
 }
 

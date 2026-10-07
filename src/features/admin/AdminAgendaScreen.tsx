@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { ApiException } from '../../core/api/apiTypes';
 import { friendlyErrorMessage, useApiQuery } from '../../core/hooks/useApiQuery';
 import { AppColors, colorEstadoAgenda } from '../../core/theme/colors';
 import { formatFecha, formatHora } from '../../core/utils/formatters';
@@ -17,6 +18,7 @@ import { AdminGestionarAlumnosModal } from './AdminGestionarAlumnosModal';
 import { AdminRepository } from './adminRepository';
 
 export function AdminAgendaScreen() {
+  const router = useRouter();
   const [fecha, setFecha] = useState(new Date());
   const [crearVisible, setCrearVisible] = useState(false);
   const [gestionarClaseId, setGestionarClaseId] = useState<number | null>(null);
@@ -40,12 +42,34 @@ export function AdminAgendaScreen() {
     }
   };
 
+  const verHojaRuta = async (agendaId: number) => {
+    try {
+      const hojaId = await AdminRepository.hojaRutaDeClase(agendaId);
+      router.push(`/admin/vehiculos/hoja-ruta/${hojaId}`);
+    } catch (e) {
+      // v2: si la clase quedó sin hoja de ruta, el backend avisa si se puede crear.
+      if (e instanceof ApiException && e.statusCode === 404 && e.data?.puede_crear_hoja) {
+        Alert.alert('Clase sin hoja de ruta', 'Esta clase está marcada como realizada pero no tiene hoja de ruta. ¿Quieres registrarla ahora?', [
+          { text: 'Ahora no', style: 'cancel' },
+          { text: 'Crear hoja', onPress: () => router.push(`/admin/agenda/hoja-faltante/${agendaId}`) },
+        ]);
+        return;
+      }
+      showToast(friendlyErrorMessage(e), true);
+    }
+  };
+
   const abrirMenuClase = async (clase: Record<string, unknown>) => {
     const esTeorica = clase.tipo_clase === 'teorica';
-    const opciones = esTeorica ? ['Gestionar alumnos', 'Eliminar bloque'] : ['Eliminar bloque'];
+    const opciones = [
+      ...(clase.estado === 'realizada' && !esTeorica ? ['Ver hoja de ruta'] : []),
+      ...(esTeorica ? ['Gestionar alumnos'] : []),
+      'Eliminar bloque',
+    ];
     const seleccion = await showOptionsActionSheet({ options: opciones, destructiveIndex: opciones.length - 1 });
     if (seleccion === null) return;
     const opcion = opciones[seleccion];
+    if (opcion === 'Ver hoja de ruta') verHojaRuta(clase.id as number);
     if (opcion === 'Gestionar alumnos') setGestionarClaseId(clase.id as number);
     if (opcion === 'Eliminar bloque') eliminarBloque(clase.id as number);
   };

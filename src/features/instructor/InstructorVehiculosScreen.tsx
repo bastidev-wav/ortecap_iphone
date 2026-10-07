@@ -43,9 +43,19 @@ export function InstructorVehiculosScreen() {
           const alumnoDetectado = dashboard.alumno_detectado as Record<string, unknown> | null;
           const vehiculos = (dashboard.vehiculos as Record<string, unknown>[]) ?? [];
           const disponibles = vehiculos.filter((v) => v.estado === 'disponible');
+          const clasesHoy = (dashboard.clases_hoy as Record<string, unknown>[]) ?? [];
+          const rutasExtra = Number(dashboard.rutas_en_curso_extra ?? 0);
 
           return (
             <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={loading} onRefresh={refetch} />}>
+              {rutasExtra > 0 ? (
+                <Card style={styles.avisoCard}>
+                  <Ionicons name="warning-outline" size={20} color={AppColors.warning} />
+                  <Text style={styles.avisoTexto}>
+                    Tienes {rutasExtra + 1} rutas sin cerrar. Cierra o cancela esta primero (es la más antigua) y luego la siguiente.
+                  </Text>
+                </Card>
+              ) : null}
               {rutaActiva ? (
                 <TouchableOpacity onPress={() => router.push(`/instructor/vehiculos/hoja-ruta/${rutaActiva.id}`)}>
                   <Card style={styles.rutaActivaCard}>
@@ -103,6 +113,7 @@ export function InstructorVehiculosScreen() {
                 onClose={() => setIniciarVisible(false)}
                 vehiculosDisponibles={disponibles}
                 alumnoDetectado={alumnoDetectado}
+                clasesHoy={clasesHoy}
                 onIniciado={() => {
                   setIniciarVisible(false);
                   refetch();
@@ -122,6 +133,8 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: AppColors.background },
   content: { padding: 16, paddingBottom: 40 },
   flex1: { flex: 1, marginLeft: 12 },
+  avisoCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: `${AppColors.warning}1F`, borderColor: 'transparent', marginBottom: 12 },
+  avisoTexto: { flex: 1, fontSize: 13, fontWeight: '600', color: AppColors.textPrimary },
   rutaActivaCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: AppColors.primary, borderColor: 'transparent', marginBottom: 16 },
   rutaActivaTitulo: { color: '#FFFFFF', fontWeight: '800' },
   rutaActivaSubtitulo: { color: 'rgba(255,255,255,0.7)', marginTop: 2 },

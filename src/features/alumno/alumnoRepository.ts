@@ -125,20 +125,32 @@ export const AlumnoRepository = {
     return dataAsMap(r);
   },
 
-  // ---------------- Simulador ----------------
-  async simuladorResumen() {
-    const r = await ApiClient.get('/alumno/simulador');
+  // ---------------- Constancias de asistencia ----------------
+  /** Clases y evaluaciones realizadas, de la más reciente a la más antigua. */
+  async constancias() {
+    const r = await ApiClient.get('/alumno/constancias');
+    return dataAsList(r);
+  },
+
+  async constancia(agendaId: number, conFirma: boolean) {
+    const r = await ApiClient.get(`/alumno/constancias/${agendaId}`, conFirma ? { firma: 1 } : undefined);
     return dataAsMap(r);
   },
 
-  async iniciarExamen(tema?: number) {
-    const r = await ApiClient.get('/alumno/simulador/iniciar', tema !== undefined ? { tema } : undefined);
-    return dataAsMap(r);
+  /** Documento imprimible en HTML (el mismo del sitio web). */
+  constanciaDocumento(agendaId: number, conFirma: boolean): Promise<string> {
+    return ApiClient.getHtml(`/alumno/constancias/${agendaId}/documento`, conFirma ? { firma: 1 } : undefined);
   },
 
-  async finalizarExamen(respuestas: Record<string, number>) {
-    const r = await ApiClient.post('/alumno/simulador/finalizar', { respuestas });
-    return dataAsMap(r);
+  // ---------------- Buzón de sugerencias ----------------
+  async retroalimentaciones() {
+    const r = await ApiClient.get('/alumno/retroalimentacion');
+    return dataAsList(r);
+  },
+
+  async enviarRetroalimentacion(params: { tipo: 'felicitacion' | 'reclamo' | 'sugerencia' | 'mejora'; mensaje: string }) {
+    const r = await ApiClient.post('/alumno/retroalimentacion', params);
+    return r.message;
   },
 
   // ---------------- Mensajería ----------------

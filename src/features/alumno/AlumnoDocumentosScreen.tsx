@@ -5,7 +5,7 @@ import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } 
 
 import { useApiQuery } from '../../core/hooks/useApiQuery';
 import { AppColors } from '../../core/theme/colors';
-import { AsyncGate } from '../../shared/components/AsyncGate';
+import { AlumnoAsyncGate } from './AlumnoAsyncGate';
 import { Button } from '../../shared/components/Button';
 import { Card } from '../../shared/components/Card';
 import { AlumnoDejarResenaModal } from './AlumnoDejarResenaModal';
@@ -17,7 +17,7 @@ export function AlumnoDocumentosScreen() {
   const [resenaVisible, setResenaVisible] = useState(false);
 
   return (
-    <AsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
+    <AlumnoAsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
       {(datos) => {
         const necesitaFirma = datos.necesita_firma === true;
         const certEmitido = datos.cert_emitido === true;
@@ -50,6 +50,28 @@ export function AlumnoDocumentosScreen() {
               {certEmitido ? <Ionicons name="chevron-forward" size={18} color={AppColors.textSecondary} /> : null}
             </Card>
 
+            <TouchableOpacity onPress={() => router.push('/alumno/evaluaciones')}>
+              <Card style={styles.itemCard}>
+                <Ionicons name="clipboard-outline" size={24} color={AppColors.primary} />
+                <View style={styles.flex1}>
+                  <Text style={styles.itemTitle}>Mis evaluaciones prácticas</Text>
+                  <Text style={styles.itemSubtitle}>Pauta de cada clase y firma de conformidad</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={AppColors.textSecondary} />
+              </Card>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => router.push('/alumno/constancias')}>
+              <Card style={styles.itemCard}>
+                <Ionicons name="checkmark-done-outline" size={24} color={AppColors.primary} />
+                <View style={styles.flex1}>
+                  <Text style={styles.itemTitle}>Constancias de asistencia</Text>
+                  <Text style={styles.itemSubtitle}>Para justificar ausencias en el trabajo o estudios</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={AppColors.textSecondary} />
+              </Card>
+            </TouchableOpacity>
+
             {!yaComento ? (
               <View style={styles.resenaButton}>
                 <Button
@@ -72,7 +94,7 @@ export function AlumnoDocumentosScreen() {
           </ScrollView>
         );
       }}
-    </AsyncGate>
+    </AlumnoAsyncGate>
   );
 }
 

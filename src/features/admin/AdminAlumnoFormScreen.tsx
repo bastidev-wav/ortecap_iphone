@@ -1,7 +1,7 @@
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 
 import { ApiClient } from '../../core/api/apiClient';
@@ -11,6 +11,7 @@ import { AppColors } from '../../core/theme/colors';
 import { Button } from '../../shared/components/Button';
 import { Select } from '../../shared/components/Select';
 import { SectionHeader } from '../../shared/components/CommonWidgets';
+import { LoadingView } from '../../shared/components/StateViews';
 import { TextField } from '../../shared/components/TextField';
 import { showToast } from '../../shared/components/Toast';
 import { AdminRepository } from './adminRepository';
@@ -19,26 +20,60 @@ type Documento = { uri: string; name: string; mimeType?: string };
 
 export function AdminAlumnoFormScreen() {
   const router = useRouter();
-  const { rut: rutExistente } = useLocalSearchParams<{ rut?: string }>();
+  // Cuando se abre desde la Agenda de matrículas llegan los datos de la persona agendada.
+  const p = useLocalSearchParams<{
+    rut?: string;
+    desde_cupo?: string;
+    nombres?: string;
+    apellidos?: string;
+    telefono?: string;
+    correo?: string;
+    curso_id?: string;
+    localidad_id?: string;
+  }>();
+  const desdeCupo = p.desde_cupo;
+  const rutExistente = desdeCupo ? undefined : p.rut;
   const esEdicion = !!rutExistente;
 
   const { data: cursosData } = useApiQuery(() => AdminRepository.cursos());
 
-  const [rut, setRut] = useState('');
-  const [nombres, setNombres] = useState('');
-  const [apellidos, setApellidos] = useState('');
-  const [correo, setCorreo] = useState('');
-  const [telefono, setTelefono] = useState('');
+  const [rut, setRut] = useState(desdeCupo ? p.rut ?? '' : '');
+  const [nombres, setNombres] = useState(p.nombres ?? '');
+  const [apellidos, setApellidos] = useState(p.apellidos ?? '');
+  const [correo, setCorreo] = useState(p.correo ?? '');
+  const [telefono, setTelefono] = useState(p.telefono ?? '');
   const [direccion, setDireccion] = useState('');
-  const [localidadId, setLocalidadId] = useState('');
+  const [localidadId, setLocalidadId] = useState(p.localidad_id ?? '');
   const [declaracionSalud, setDeclaracionSalud] = useState(false);
   const [enfermedades, setEnfermedades] = useState('');
-  const [cursoSeleccionado, setCursoSeleccionado] = useState('');
+  const [cursoSeleccionado, setCursoSeleccionado] = useState(p.curso_id ?? '');
   const [precio, setPrecio] = useState('');
   const [formaPago, setFormaPago] = useState<'contado' | 'cuotas'>('contado');
   const [voucher, setVoucher] = useState('');
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [comprobante, setComprobante] = useState<Documento | null>(null);
+  const [cargandoExpediente, setCargandoExpediente] = useState(esEdicion);
+
+  // Al editar se cargan los datos actuales: el PUT reemplaza todos los campos,
+  // así que guardar con el formulario vacío borraría el expediente.
+  useEffect(() => {
+    if (!rutExistente) return;
+    AdminRepository.alumnoDetalle(rutExistente)
+      .then((d) => {
+        const a = (d.alumno as Record<string, unknown>) ?? {};
+        setNombres(String(a.nombres ?? ''));
+        setApellidos(String(a.apellidos ?? ''));
+        setCorreo(String(a.correo ?? ''));
+        setTelefono(String(a.telefono ?? ''));
+        setDireccion(String(a.direccion ?? ''));
+        setLocalidadId(a.localidad_id != null ? String(a.localidad_id) : '');
+        setDeclaracionSalud(Number(a.declaracion_salud) === 1 || a.declaracion_salud === true);
+        const enf = String(a.enfermedades_declaradas ?? '');
+        setEnfermedades(enf === 'Ninguna' ? '' : enf);
+      })
+      .catch((e) => showToast(e instanceof ApiException ? e.message : 'No se pudo cargar el expediente.', true))
+      .finally(() => setCargandoExpediente(false));
+  }, [rutExistente]);
 
   const elegirDocumentos = async () => {
     const result = await DocumentPicker.getDocumentAsync({
@@ -82,6 +117,8 @@ export function AdminAlumnoFormScreen() {
         precio_final: precio.trim(),
         forma_pago: formaPago,
         numero_voucher: voucher.trim(),
+        // El backend deja ese horario de la Agenda de matrículas como "Matriculado".
+        ...(desdeCupo ? { desde_cupo: desdeCupo } : {}),
       });
     }
 
@@ -108,8 +145,13 @@ export function AdminAlumnoFormScreen() {
     ...(((cursosData?.cursos as Record<string, unknown>[]) ?? []).map((c) => ({ label: String(c.nombre), value: String(c.id) }))),
   ];
 
+  if (cargandoExpediente) return <LoadingView message="Cargando expediente..." />;
+
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
+      {desdeCupo ? (
+        <Text style={styles.desdeCupo}>Datos tomados de la Agenda de matrículas. Revísalos antes de matricular.</Text>
+      ) : null}
       {!esEdicion ? <TextField label="RUT" value={rut} onChangeText={setRut} autoCapitalize="none" /> : null}
       <TextField label="Nombres" value={nombres} onChangeText={setNombres} />
       <TextField label="Apellidos" value={apellidos} onChangeText={setApellidos} />
@@ -174,6 +216,7 @@ export function AdminAlumnoFormScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: AppColors.background },
   content: { padding: 16, paddingBottom: 40 },
+  desdeCupo: { color: AppColors.info, fontSize: 13, fontWeight: '600', marginBottom: 12 },
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   switchLabel: { flex: 1, color: AppColors.textPrimary },
   row: { flexDirection: 'row', gap: 16, marginBottom: 12 },

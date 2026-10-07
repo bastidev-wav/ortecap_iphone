@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { AppColors } from '../../../src/core/theme/colors';
-import { HeaderLogoutButton } from '../../../src/shared/components/HeaderLogoutButton';
+import { HeaderCuentaButton } from '../../../src/shared/components/HeaderCuentaButton';
 
 export default function InstructorTabsLayout() {
   return (
@@ -23,13 +23,14 @@ export default function InstructorTabsLayout() {
           title: 'Mis clases de hoy',
           tabBarLabel: 'Inicio',
           tabBarIcon: ({ color, size }) => <Ionicons name="grid-outline" color={color} size={size} />,
-          headerRight: () => <HeaderLogoutButton />,
+          headerRight: () => <HeaderCuentaButton ruta="/instructor/cuenta" />,
         }}
       />
       <Tabs.Screen
         name="agenda"
         options={{
           title: 'Mi agenda',
+          tabBarLabel: 'Agenda',
           tabBarIcon: ({ color, size }) => <Ionicons name="calendar-outline" color={color} size={size} />,
         }}
       />
@@ -37,6 +38,7 @@ export default function InstructorTabsLayout() {
         name="alumnos"
         options={{
           title: 'Mis alumnos',
+          tabBarLabel: 'Alumnos',
           tabBarIcon: ({ color, size }) => <Ionicons name="school-outline" color={color} size={size} />,
         }}
       />

@@ -67,6 +67,28 @@ export const InstructorRepository = {
     await ApiClient.post('/instructor/vehiculos/finalizar', datos);
   },
 
+  /** Cancela una ruta iniciada por error: libera el vehículo y devuelve la clase a "reservado". */
+  async cancelarRuta(idRuta: number) {
+    const r = await ApiClient.post('/instructor/vehiculos/cancelar', { id_ruta: idRuta });
+    return r.message;
+  },
+
+  /** Corrige fecha / alumno / km de salida de una ruta en curso. */
+  async actualizarInicioRuta(params: { idRuta: number; kmInicio: number; fecha?: string; alumnoRut?: string | null }) {
+    const r = await ApiClient.post('/instructor/vehiculos/actualizar-inicio', {
+      id_ruta: params.idRuta,
+      km_inicio: params.kmInicio,
+      ...(params.fecha ? { fecha: params.fecha } : {}),
+      alumno_rut: params.alumnoRut ?? '',
+    });
+    return r.message;
+  },
+
+  /** Autoguardado del cierre de ruta: lo llenado no se pierde si se corta la conexión. */
+  async guardarBorradorRuta(datos: Record<string, unknown>) {
+    await ApiClient.post('/instructor/vehiculos/guardar-borrador', datos);
+  },
+
   async historialRutas() {
     const r = await ApiClient.get('/instructor/vehiculos/historial');
     return dataAsList(r);

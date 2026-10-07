@@ -7,7 +7,7 @@ import { nombreCompleto } from '../../core/auth/types';
 import { useApiQuery } from '../../core/hooks/useApiQuery';
 import { formatFechaHora } from '../../core/utils/formatters';
 import { AppColors } from '../../core/theme/colors';
-import { AsyncGate } from '../../shared/components/AsyncGate';
+import { AlumnoAsyncGate } from './AlumnoAsyncGate';
 import { Card } from '../../shared/components/Card';
 import { AppAvatar, SectionHeader } from '../../shared/components/CommonWidgets';
 import { LoadingView } from '../../shared/components/StateViews';
@@ -56,7 +56,7 @@ export function AlumnoAcademicoScreen() {
   const { data, loading, error, refetch } = useApiQuery(() => AlumnoRepository.progreso());
 
   return (
-    <AsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
+    <AlumnoAsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
       {(datos) => {
         const matricula = datos.matricula as Record<string, unknown>;
         const metricas = (datos.metricas as Record<string, number>) ?? {};
@@ -115,7 +115,7 @@ export function AlumnoAcademicoScreen() {
           </ScrollView>
         );
       }}
-    </AsyncGate>
+    </AlumnoAsyncGate>
   );
 }
 

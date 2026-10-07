@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { friendlyErrorMessage, useApiQuery } from '../../core/hooks/useApiQuery';
+import { sincronizarRecordatorios } from '../../core/notifications/recordatorios';
+import { clasesAlumno } from '../recordatorios/sincronizar';
 import { formatFecha, formatHora } from '../../core/utils/formatters';
 import { AppColors, Radii } from '../../core/theme/colors';
-import { AsyncGate } from '../../shared/components/AsyncGate';
+import { AlumnoAsyncGate } from './AlumnoAsyncGate';
 import { Button } from '../../shared/components/Button';
 import { Card } from '../../shared/components/Card';
 import { SectionHeader } from '../../shared/components/CommonWidgets';
@@ -22,6 +24,12 @@ export function AlumnoReservarScreen() {
     () => AlumnoRepository.disponibles({ tipo, fecha: dayjs(semana).format('YYYY-MM-DD') }),
     [tipo],
   );
+
+  // Tras reservar o cancelar, los recordatorios quedan alineados con las clases vigentes.
+  useEffect(() => {
+    const misClases = data?.mis_clases as Record<string, unknown>[] | undefined;
+    if (misClases) void sincronizarRecordatorios(clasesAlumno(misClases));
+  }, [data]);
 
   const reservar = async (idsBloques: number[]) => {
     try {
@@ -59,7 +67,7 @@ export function AlumnoReservarScreen() {
         </TouchableOpacity>
       </View>
 
-      <AsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
+      <AlumnoAsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
         {(datos) => {
           const bloques = (datos.bloques as Record<string, unknown>[]) ?? [];
           const misClases = (datos.mis_clases as Record<string, unknown>[]) ?? [];
@@ -112,7 +120,7 @@ export function AlumnoReservarScreen() {
             </ScrollView>
           );
         }}
-      </AsyncGate>
+      </AlumnoAsyncGate>
     </View>
   );
 }

@@ -8,6 +8,8 @@ interface AsyncGateProps<T> {
   error: unknown;
   data: T | undefined;
   onRetry?: () => void;
+  /** Vista especial para ciertos errores; si devuelve null se usa el ErrorView normal. */
+  renderError?: (error: unknown) => React.ReactNode | null;
   children: (data: T) => React.ReactNode;
 }
 
@@ -16,9 +18,13 @@ interface AsyncGateProps<T> {
  * LoadingView / ErrorView / los datos. Equivalente a AsyncValueWidget de
  * la app Flutter.
  */
-export function AsyncGate<T>({ loading, error, data, onRetry, children }: AsyncGateProps<T>) {
+export function AsyncGate<T>({ loading, error, data, onRetry, renderError, children }: AsyncGateProps<T>) {
   if (loading && data === undefined) return <LoadingView />;
-  if (error) return <ErrorView message={friendlyErrorMessage(error)} onRetry={onRetry} />;
+  if (error) {
+    const especial = renderError?.(error);
+    if (especial) return <>{especial}</>;
+    return <ErrorView message={friendlyErrorMessage(error)} onRetry={onRetry} />;
+  }
   if (data === undefined) return <LoadingView />;
   return <>{children(data)}</>;
 }

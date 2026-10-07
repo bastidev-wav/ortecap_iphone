@@ -1,4 +1,8 @@
 import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+
+// Nombres de días y meses en español en toda la app (ej. "lun", "octubre").
+dayjs.locale('es');
 
 /**
  * Formatea un RUT limpio (ej. "154885285" o "20891717k") a formato legible

@@ -8,7 +8,7 @@ import { useApiQuery } from '../../core/hooks/useApiQuery';
 import { PushNotificationService } from '../../core/notifications/pushNotificationService';
 import { AppColors } from '../../core/theme/colors';
 import { formatCLP, formatFecha, formatHora } from '../../core/utils/formatters';
-import { AsyncGate } from '../../shared/components/AsyncGate';
+import { AlumnoAsyncGate } from './AlumnoAsyncGate';
 import { Card } from '../../shared/components/Card';
 import { InfoRow, SectionHeader } from '../../shared/components/CommonWidgets';
 import { ProgressBar } from '../../shared/components/ProgressBar';
@@ -60,7 +60,7 @@ export function AlumnoDashboardScreen() {
         </Card>
       ) : null}
 
-      <AsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
+      <AlumnoAsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
         {(dashboard) => {
           const matricula = dashboard.matricula as Record<string, unknown> | null;
           const financiero = dashboard.financiero as Record<string, unknown> | null;
@@ -125,7 +125,7 @@ export function AlumnoDashboardScreen() {
             </>
           );
         }}
-      </AsyncGate>
+      </AlumnoAsyncGate>
     </ScrollView>
   );
 }

@@ -7,12 +7,20 @@
 export class ApiException extends Error {
   readonly statusCode?: number;
   readonly errors?: Record<string, unknown> | null;
+  /** Algunos errores traen datos extra en `data` (ej. 404 con `puede_crear_hoja`). */
+  readonly data?: Record<string, unknown> | null;
 
-  constructor(params: { message: string; statusCode?: number; errors?: Record<string, unknown> | null }) {
+  constructor(params: {
+    message: string;
+    statusCode?: number;
+    errors?: Record<string, unknown> | null;
+    data?: Record<string, unknown> | null;
+  }) {
     super(params.message);
     this.name = 'ApiException';
     this.statusCode = params.statusCode;
     this.errors = params.errors ?? null;
+    this.data = params.data ?? null;
   }
 
   /** true si el backend devolvió errores de validación por campo (HTTP 422). */

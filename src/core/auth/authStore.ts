@@ -3,6 +3,7 @@ import { create } from 'zustand';
 
 import { ApiClient } from '../api/apiClient';
 import { PushNotificationService } from '../notifications/pushNotificationService';
+import { cancelarRecordatorios } from '../notifications/recordatorios';
 import { SecureStorageService } from '../storage/secureStorage';
 import { AuthRepository } from './authRepository';
 import { AppUser, AuthSession, AuthStatus, LoginResult } from './types';
@@ -142,11 +143,13 @@ export const useAuthStore = create<AuthStoreState>((set, get) => ({
       // importante es que el usuario pueda salir siempre.
     }
     await SecureStorageService.clearSession();
+    await cancelarRecordatorios();
     set({ status: 'unauthenticated', user: null });
   },
 
   forceLogout() {
     void SecureStorageService.clearSession();
+    void cancelarRecordatorios();
     set({ status: 'unauthenticated', user: null });
   },
 

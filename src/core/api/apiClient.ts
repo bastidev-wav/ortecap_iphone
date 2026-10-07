@@ -63,6 +63,29 @@ class ApiClientImpl {
     return this.request(() => this.axios.delete(path, { data }));
   }
 
+  /** GET que devuelve el cuerpo tal cual (para endpoints que responden HTML, ej. documentos imprimibles). */
+  async getHtml(path: string, query?: Record<string, unknown>): Promise<string> {
+    let response;
+    try {
+      response = await this.axios.get(path, { params: query, responseType: 'text', headers: { Accept: 'text/html' } });
+    } catch (e) {
+      throw new ApiException({ message: this.mensajeErrorRed(e as AxiosError) });
+    }
+    const body = typeof response.data === 'string' ? response.data : String(response.data ?? '');
+    if (response.status >= 400) {
+      let message = 'No se pudo cargar el documento.';
+      try {
+        const json = JSON.parse(body);
+        if (typeof json?.message === 'string') message = json.message;
+      } catch {
+        // la respuesta no era JSON
+      }
+      if (response.status === 401) this.onUnauthorized?.();
+      throw new ApiException({ message, statusCode: response.status });
+    }
+    return body;
+  }
+
   /**
    * POST/PUT con `multipart/form-data`, para endpoints que reciben archivos
    * (documentos, comprobantes, fotos).
@@ -157,6 +180,7 @@ class ApiClientImpl {
         message: message || 'Ocurrió un error inesperado.',
         statusCode: response.status,
         errors: (json.errors as Record<string, unknown> | undefined) ?? null,
+        data: json.data && typeof json.data === 'object' ? (json.data as Record<string, unknown>) : null,
       });
     }
 

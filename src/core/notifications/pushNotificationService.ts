@@ -83,10 +83,11 @@ async function requestPermissionAndRegister(): Promise<void> {
   }
 }
 
-/** true si el usuario bloqueó las notificaciones a nivel de sistema. */
+/** true si el usuario bloqueó las notificaciones a nivel de sistema (no cuenta "aún no ha respondido"). */
 async function permisoBloqueado(): Promise<boolean> {
+  if (Platform.OS === 'web') return false;
   const { status } = await Notifications.getPermissionsAsync();
-  return status !== 'granted';
+  return status === 'denied';
 }
 
 export const PushNotificationService = {

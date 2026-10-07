@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { AppColors } from '../../../src/core/theme/colors';
-import { HeaderLogoutButton } from '../../../src/shared/components/HeaderLogoutButton';
+import { HeaderCuentaButton } from '../../../src/shared/components/HeaderCuentaButton';
 
 export default function AlumnoTabsLayout() {
   return (
@@ -23,13 +23,14 @@ export default function AlumnoTabsLayout() {
           title: 'Mi curso',
           tabBarLabel: 'Inicio',
           tabBarIcon: ({ color, size }) => <Ionicons name="grid-outline" color={color} size={size} />,
-          headerRight: () => <HeaderLogoutButton />,
+          headerRight: () => <HeaderCuentaButton ruta="/alumno/cuenta" />,
         }}
       />
       <Tabs.Screen
         name="reservar"
         options={{
           title: 'Reservar clases',
+          tabBarLabel: 'Reservar',
           tabBarIcon: ({ color, size }) => <Ionicons name="calendar-outline" color={color} size={size} />,
         }}
       />
@@ -37,6 +38,7 @@ export default function AlumnoTabsLayout() {
         name="documentos"
         options={{
           title: 'Mis documentos',
+          tabBarLabel: 'Documentos',
           tabBarIcon: ({ color, size }) => <Ionicons name="document-text-outline" color={color} size={size} />,
         }}
       />

@@ -3,7 +3,7 @@
     "name": "Ortecap",
     "slug": "ortecap-iphone",
     "scheme": "ortecapapp",
-    "version": "6.0.0",
+    "version": "6.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
@@ -46,7 +46,8 @@
         }
       ],
       "expo-image",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true

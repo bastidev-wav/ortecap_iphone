@@ -33,6 +33,15 @@ export default function AdminLayout() {
       <Stack.Screen name="reportes" options={{ title: 'Reportes' }} />
       <Stack.Screen name="staff" options={{ title: 'Staff' }} />
       <Stack.Screen name="dispositivos" options={{ title: 'Dispositivos' }} />
+      <Stack.Screen name="alumnos/[rut]/hojas-ruta" options={{ title: 'Hojas de ruta' }} />
+      <Stack.Screen name="agenda/hoja-faltante/[id]" options={{ title: 'Hoja de ruta faltante' }} />
+      <Stack.Screen name="agenda-matriculas/index" options={{ title: 'Agenda de matrículas' }} />
+      <Stack.Screen name="agenda-matriculas/[id]" options={{ title: 'Jornada' }} />
+      <Stack.Screen name="correos" options={{ title: 'Correos a alumnos' }} />
+      <Stack.Screen name="buzon" options={{ title: 'Buzón de sugerencias' }} />
+      <Stack.Screen name="horario-referencia" options={{ title: 'Horario de referencia' }} />
+      <Stack.Screen name="sesiones-abiertas" options={{ title: 'Rutas abiertas' }} />
+      <Stack.Screen name="auditoria-horas" options={{ title: 'Auditoría de horas' }} />
     </Stack>
   );
 }
