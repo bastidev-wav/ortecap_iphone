@@ -19,6 +19,7 @@
     },
     "ios": {
       "bundleIdentifier": "cl.ortecap.app",
+      "buildNumber": "2",
       "supportsTablet": false,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Ortecap usa tu ubicación para registrar el recorrido (hoja de ruta) de tus clases prácticas de conducción.",
