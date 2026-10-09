@@ -22,6 +22,18 @@ const DIAS = [
   { id: 7, label: 'Dom' },
 ];
 
+/** Mismas opciones que el panel web (Admin\Agenda::crearBloques acepta solo estos valores). */
+const DURACIONES = [
+  { value: '60', label: '1 hora por bloque' },
+  { value: '0', label: 'Un solo bloque (todo el rango)' },
+  { value: '120', label: '2 horas por bloque' },
+  { value: '180', label: '3 horas por bloque' },
+  { value: '240', label: '4 horas por bloque' },
+  { value: '90', label: '1 hora y media por bloque' },
+  { value: '45', label: '45 minutos por bloque' },
+  { value: '30', label: '30 minutos por bloque' },
+];
+
 export function AdminCrearBloquesModal({ visible, onClose, onCreated }: { visible: boolean; onClose: () => void; onCreated: () => void }) {
   const { data: instructores } = useApiQuery(() => AdminRepository.instructores());
 
@@ -53,7 +65,7 @@ export function AdminCrearBloquesModal({ visible, onClose, onCreated }: { visibl
     }
     const esTeorica = tipoClase === 'teorica';
     try {
-      const creados = await AdminRepository.crearBloquesAgenda({
+      const mensaje = await AdminRepository.crearBloquesAgenda({
         fecha_inicio: dayjs(fechaInicio).format('YYYY-MM-DD'),
         fecha_fin: dayjs(fechaFin).format('YYYY-MM-DD'),
         dias: diasSeleccionados,
@@ -62,10 +74,10 @@ export function AdminCrearBloquesModal({ visible, onClose, onCreated }: { visibl
         instructor_rut: instructorRut,
         localidad_id: localidad.trim() || undefined,
         tipo_clase: tipoClase,
-        ...(!esTeorica ? { duracion_minutos: Number(duracion) || 60 } : {}),
+        ...(!esTeorica ? { duracion_bloque: Number(duracion) } : {}),
         ...(esTeorica ? { modulo: modulo.trim() || undefined, cupo_maximo: Number(cupoMaximo) || 30 } : {}),
       });
-      showToast(`Se crearon ${creados} bloques.`);
+      showToast(mensaje);
       onCreated();
     } catch (e) {
       showToast(friendlyErrorMessage(e), true);
@@ -121,16 +133,17 @@ export function AdminCrearBloquesModal({ visible, onClose, onCreated }: { visibl
             </TouchableOpacity>
           </View>
 
-          <View style={styles.row}>
-            {tipoClase !== 'teorica' ? (
-              <View style={styles.flex1}>
-                <TextField label="Duración (min)" keyboardType="number-pad" value={duracion} onChangeText={setDuracion} />
-              </View>
-            ) : null}
-            <View style={styles.flex1}>
-              <TextField label="ID sede (opcional)" keyboardType="number-pad" value={localidad} onChangeText={setLocalidad} />
+          {tipoClase !== 'teorica' ? (
+            <View style={styles.duracion}>
+              <Select label="Duración de cada bloque" value={duracion} options={DURACIONES} onChange={setDuracion} />
+              <Text style={styles.ayuda}>
+                «Un solo bloque» usa todo el rango (ej. 10:00 a 12:00 = 1 bloque de 2 horas). Así conviene agendar una clase de 2 horas
+                seguidas con el mismo alumno: queda con una sola hoja de ruta.
+              </Text>
             </View>
-          </View>
+          ) : null}
+
+          <TextField label="ID sede (opcional)" keyboardType="number-pad" value={localidad} onChangeText={setLocalidad} />
 
           <View style={styles.row}>
             <TouchableOpacity style={styles.radioRow} onPress={() => setTipoClase('practica')}>
@@ -197,6 +210,8 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   row: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   flex1: { flex: 1 },
+  duracion: { marginBottom: 12 },
+  ayuda: { fontSize: 12, color: AppColors.textSecondary, marginTop: -10 },
   dateButton: {
     flex: 1,
     borderWidth: 1,

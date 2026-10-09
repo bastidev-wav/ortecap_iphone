@@ -167,9 +167,10 @@ export const AdminRepository = {
     return dataAsMap(r);
   },
 
-  async crearBloquesAgenda(datos: Record<string, unknown>): Promise<number> {
+  /** Devuelve el mensaje del servidor (incluye cuántos bloques se omitieron por choque de horario). */
+  async crearBloquesAgenda(datos: Record<string, unknown>): Promise<string> {
     const r = await ApiClient.post('/admin/agenda/bloques', datos);
-    return dataAsMap(r).bloques_creados as number;
+    return r.message || `Se crearon ${dataAsMap(r).bloques_creados ?? 0} bloques.`;
   },
 
   async actualizarBloquesAgenda(ids: number[], cambios: Record<string, unknown>) {

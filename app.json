@@ -3,23 +3,16 @@
     "name": "Ortecap",
     "slug": "ortecap-iphone",
     "scheme": "ortecapapp",
-    "version": "6.0.3",
+    "version": "6.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "platforms": [
       "ios",
       "web"
     ],
-    "splash": {
-      "image": "./assets/images/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
-    },
     "ios": {
       "bundleIdentifier": "cl.ortecap.app",
-      "buildNumber": "2",
       "supportsTablet": false,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Ortecap usa tu ubicación para registrar el recorrido (hoja de ruta) de tus clases prácticas de conducción.",
@@ -30,11 +23,19 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Ortecap no usa Face ID. Tu sesión se guarda de forma segura en el iPhone."
+        }
+      ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Ortecap usa tu ubicación para registrar el recorrido (hoja de ruta) de tus clases prácticas de conducción."
+          "locationWhenInUsePermission": "Ortecap usa tu ubicación para registrar el recorrido (hoja de ruta) de tus clases prácticas de conducción.",
+          "locationAlwaysAndWhenInUsePermission": "Ortecap usa tu ubicación para registrar el recorrido (hoja de ruta) de tus clases prácticas de conducción.",
+          "locationAlwaysPermission": "Ortecap usa tu ubicación para registrar el recorrido (hoja de ruta) de tus clases prácticas de conducción.",
+          "motionUsagePermission": "Ortecap no usa los sensores de movimiento del iPhone."
         }
       ],
       [
@@ -48,7 +49,8 @@
       ],
       "expo-image",
       "@react-native-community/datetimepicker",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

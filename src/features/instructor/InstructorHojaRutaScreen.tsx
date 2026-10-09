@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { friendlyErrorMessage, useApiQuery } from '../../core/hooks/useApiQuery';
 import { formatFecha, formatHora } from '../../core/utils/formatters';
@@ -71,6 +71,23 @@ export function InstructorHojaRutaScreen() {
     }
   };
 
+  /** Igual que la web: una ruta abierta otro día no se cierra sin confirmar que la clase fue en esa fecha. */
+  const pedirFinalizar = (fechaRuta: string, deOtroDia: boolean) => {
+    if (!deOtroDia) {
+      setFinalizarVisible(true);
+      return;
+    }
+    Alert.alert(
+      '¿La clase fue ese día?',
+      `Esta ruta es del ${formatFecha(fechaRuta)}, no de hoy. Si la clase fue otro día, corrige los datos de inicio antes de finalizarla.`,
+      [
+        { text: 'Volver', style: 'cancel' },
+        { text: 'Corregir datos de inicio', onPress: () => setCorregirVisible(true) },
+        { text: `Sí, fue el ${formatFecha(fechaRuta)}`, onPress: () => setFinalizarVisible(true) },
+      ],
+    );
+  };
+
   return (
     <ScrollView style={styles.flex} contentContainerStyle={styles.content}>
       <AsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
@@ -80,6 +97,9 @@ export function InstructorHojaRutaScreen() {
           const evaluacionGuardada = (detalle.evaluacion as Record<string, string>) ?? {};
           const fechaRuta = String(ruta.fecha ?? '').substring(0, 10);
           const deOtroDia = enCurso && fechaRuta !== dayjs().format('YYYY-MM-DD');
+          // El servidor ajusta la hora de término si la ruta se cierra más de 3 horas después de iniciada.
+          const inicio = dayjs(`${fechaRuta} ${String(ruta.hora_inicio ?? '00:00:00')}`);
+          const abiertaHaceMucho = enCurso && inicio.isValid() && dayjs().diff(inicio, 'minute') > 180;
 
           return (
             <>
@@ -90,11 +110,14 @@ export function InstructorHojaRutaScreen() {
                 </Card>
               ) : null}
 
-              {deOtroDia ? (
+              {deOtroDia || abiertaHaceMucho ? (
                 <Card style={styles.avisoCard}>
-                  <Ionicons name="calendar-outline" size={20} color={AppColors.warning} />
+                  <Ionicons name={deOtroDia ? 'calendar-outline' : 'time-outline'} size={20} color={AppColors.warning} />
                   <Text style={styles.avisoTexto}>
-                    Esta ruta se abrió el {formatFecha(fechaRuta)}. Si la clase fue otro día, corrige los datos de inicio antes de finalizarla.
+                    {deOtroDia
+                      ? `Esta ruta se abrió el ${formatFecha(fechaRuta)}. Si la clase fue otro día, corrige los datos de inicio antes de finalizarla. `
+                      : 'Esta ruta lleva más de 3 horas abierta. '}
+                    Al finalizarla, la hora de término se ajustará al horario agendado de la clase.
                   </Text>
                 </Card>
               ) : null}
@@ -118,7 +141,7 @@ export function InstructorHojaRutaScreen() {
                 <View style={styles.acciones}>
                   <Button
                     label="Finalizar ruta"
-                    onPress={() => setFinalizarVisible(true)}
+                    onPress={() => pedirFinalizar(fechaRuta, deOtroDia)}
                     icon={<Ionicons name="flag" size={18} color="#FFFFFF" />}
                   />
                   <Button
