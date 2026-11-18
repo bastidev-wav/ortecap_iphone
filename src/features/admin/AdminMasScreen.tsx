@@ -30,6 +30,11 @@ export function AdminMasScreen() {
       <MenuItem icon="pricetag-outline" label="Promociones" onPress={() => router.push('/admin/promociones')} />
       <MenuItem icon="ribbon-outline" label="Certificados" onPress={() => router.push('/admin/certificados')} />
 
+      <Grupo titulo="Ventas y redes sociales" />
+      <MenuItem icon="sparkles-outline" label="Asistente RRSS (IA)" onPress={() => router.push('/admin/asistente-rrss')} />
+      <MenuItem icon="person-circle-outline" label="Interesados" onPress={() => router.push('/admin/interesados')} />
+      <MenuItem icon="megaphone-outline" label="Campañas de WhatsApp" onPress={() => router.push('/admin/campanas-whatsapp')} />
+
       <Grupo titulo="Flota y hojas de ruta" />
       <MenuItem icon="car-outline" label="Vehículos" onPress={() => router.push('/admin/vehiculos')} />
       <MenuItem icon="navigate-circle-outline" label="Rutas abiertas" onPress={() => router.push('/admin/sesiones-abiertas')} />

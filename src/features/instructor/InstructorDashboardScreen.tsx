@@ -1,12 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import { useRouter } from 'expo-router';
+import React, { useCallback } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useAuthStore } from '../../core/auth/authStore';
 import { useApiQuery, friendlyErrorMessage } from '../../core/hooks/useApiQuery';
+import { useRefetchOnFocus } from '../../core/hooks/useRefetchOnFocus';
 import { AppColors } from '../../core/theme/colors';
 import { formatHora } from '../../core/utils/formatters';
 import { AsyncGate } from '../../shared/components/AsyncGate';
+import { Button } from '../../shared/components/Button';
 import { Card } from '../../shared/components/Card';
 import { SectionHeader } from '../../shared/components/CommonWidgets';
 import { StatChip } from '../../shared/components/StatCard';
@@ -16,8 +19,19 @@ import { showConfirmDialog } from '../../shared/dialogs';
 import { InstructorRepository } from './instructorRepository';
 
 export function InstructorDashboardScreen() {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const { data, loading, error, refetch } = useApiQuery(() => InstructorRepository.dashboard());
+  // Hoja de ruta iniciada y sin cerrar: lo primero que debe ver el instructor, para no abrir una
+  // segunda ni dejarla colgada (igual que el inicio del panel web).
+  const { data: vehiculos, refetch: refetchVehiculos } = useApiQuery(() => InstructorRepository.vehiculosDashboard());
+  const rutaAbierta = (vehiculos?.ruta_activa as Record<string, unknown> | null | undefined) ?? null;
+
+  const refrescar = useCallback(() => {
+    refetch();
+    refetchVehiculos();
+  }, [refetch, refetchVehiculos]);
+  useRefetchOnFocus(refrescar);
 
   const finalizarClase = async (idClase: number) => {
     const confirmar = await showConfirmDialog({
@@ -38,7 +52,7 @@ export function InstructorDashboardScreen() {
     <ScrollView
       style={styles.flex}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={loading && !!data} onRefresh={refetch} />}
+      refreshControl={<RefreshControl refreshing={loading && !!data} onRefresh={refrescar} />}
     >
       <AsyncGate loading={loading} error={error} data={data} onRetry={refetch}>
         {(dashboard) => {
@@ -48,6 +62,25 @@ export function InstructorDashboardScreen() {
 
           return (
             <>
+              {rutaAbierta ? (
+                <Card style={styles.rutaCard}>
+                  <View style={styles.rutaTitulo}>
+                    <Ionicons name="navigate" size={20} color={AppColors.primary} />
+                    <Text style={styles.rutaTituloTexto}>Tienes una hoja de ruta abierta</Text>
+                  </View>
+                  <Text style={styles.rutaTexto}>
+                    Inició a las {formatHora(String(rutaAbierta.hora_inicio ?? ''))}
+                    {rutaAbierta.patente ? ` con el vehículo ${String(rutaAbierta.patente)}` : ''}. Cuando termine la clase, ciérrala ahí
+                    mismo: evalúa al alumno y firmen los dos.
+                  </Text>
+                  <Button
+                    label="Continuar mi hoja de ruta"
+                    onPress={() => router.push(`/instructor/vehiculos/hoja-ruta/${rutaAbierta.id}`)}
+                    icon={<Ionicons name="play" size={18} color="#FFFFFF" />}
+                  />
+                </Card>
+              ) : null}
+
               <Text style={styles.saludo}>Hola, {user?.nombres?.split(' ')[0] ?? ''} 👋</Text>
 
               <View style={styles.statsRow}>
@@ -105,6 +138,10 @@ const styles = StyleSheet.create({
   flex1: { flex: 1, marginLeft: 12 },
   content: { padding: 16, paddingBottom: 40 },
   saludo: { fontSize: 20, fontWeight: '800', color: AppColors.textPrimary, marginBottom: 16 },
+  rutaCard: { backgroundColor: `${AppColors.primary}14`, borderColor: 'transparent', marginBottom: 16, gap: 8 },
+  rutaTitulo: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rutaTituloTexto: { flex: 1, fontWeight: '800', fontSize: 15, color: AppColors.textPrimary },
+  rutaTexto: { fontSize: 13, color: AppColors.textPrimary, marginBottom: 4 },
   statsRow: { flexDirection: 'row', gap: 10 },
   listCard: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   itemTitle: { fontWeight: '700', fontSize: 14, color: AppColors.textPrimary },

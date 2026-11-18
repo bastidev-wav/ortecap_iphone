@@ -3,7 +3,7 @@
     "name": "Ortecap",
     "slug": "ortecap-iphone",
     "scheme": "ortecapapp",
-    "version": "6.0.4",
+    "version": "6.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",

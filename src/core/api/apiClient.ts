@@ -47,8 +47,12 @@ class ApiClientImpl {
     return this.request(() => this.axios.get(path, { params: query }));
   }
 
-  post(path: string, data?: unknown) {
-    return this.request(() => this.axios.post(path, data));
+  /**
+   * [esperaMs] amplía el tiempo máximo de respuesta, para llamadas lentas como las que
+   * consultan a la IA o envían un lote de mensajes (por defecto AppConfig.receiveTimeoutMs).
+   */
+  post(path: string, data?: unknown, esperaMs?: number) {
+    return this.request(() => this.axios.post(path, data, esperaMs ? { timeout: esperaMs } : undefined));
   }
 
   put(path: string, data?: unknown) {

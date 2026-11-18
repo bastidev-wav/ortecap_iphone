@@ -3,12 +3,15 @@ import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { useApiQuery } from '../../core/hooks/useApiQuery';
+import { friendlyErrorMessage, useApiQuery } from '../../core/hooks/useApiQuery';
+import { useRefetchOnFocus } from '../../core/hooks/useRefetchOnFocus';
 import { AppColors } from '../../core/theme/colors';
 import { AsyncGate } from '../../shared/components/AsyncGate';
 import { Button } from '../../shared/components/Button';
 import { Card } from '../../shared/components/Card';
 import { AppAvatar, SectionHeader } from '../../shared/components/CommonWidgets';
+import { showToast } from '../../shared/components/Toast';
+import { MantenimientoVehiculoModal } from '../vehiculos/MantenimientoVehiculoModal';
 import { InstructorHistorialRutasModal } from './InstructorHistorialRutasModal';
 import { InstructorIniciarRutaModal } from './InstructorIniciarRutaModal';
 import { InstructorRepository } from './instructorRepository';
@@ -19,6 +22,17 @@ export function InstructorVehiculosScreen() {
   const [iniciarVisible, setIniciarVisible] = useState(false);
   const [historialVisible, setHistorialVisible] = useState(false);
   const [historial, setHistorial] = useState<Record<string, unknown>[]>([]);
+  const [enMantencion, setEnMantencion] = useState<Record<string, unknown> | null>(null);
+  useRefetchOnFocus(refetch);
+
+  /** Igual que en el panel web del instructor: trae los datos completos del vehículo para precargar el formulario. */
+  const registrarMantenimiento = async (vehiculoId: number) => {
+    try {
+      setEnMantencion(await InstructorRepository.mantenimientoVehiculo(vehiculoId));
+    } catch (e) {
+      showToast(friendlyErrorMessage(e), true);
+    }
+  };
 
   const abrirHistorial = async () => {
     const h = await InstructorRepository.historialRutas();
@@ -105,6 +119,9 @@ export function InstructorVehiculosScreen() {
                       {String(v.kilometraje_actual)} km · {String(v.estado)}
                     </Text>
                   </View>
+                  <TouchableOpacity onPress={() => registrarMantenimiento(Number(v.id))} hitSlop={10} accessibilityLabel="Registrar mantención">
+                    <Ionicons name="build-outline" size={22} color={AppColors.primary} />
+                  </TouchableOpacity>
                 </Card>
               ))}
 
@@ -125,6 +142,15 @@ export function InstructorVehiculosScreen() {
       </AsyncGate>
 
       <InstructorHistorialRutasModal visible={historialVisible} onClose={() => setHistorialVisible(false)} historial={historial} />
+      <MantenimientoVehiculoModal
+        vehiculo={enMantencion}
+        onClose={() => setEnMantencion(null)}
+        guardar={(datos) => InstructorRepository.guardarMantenimiento(Number(enMantencion?.id), datos)}
+        onGuardado={() => {
+          setEnMantencion(null);
+          refetch();
+        }}
+      />
     </View>
   );
 }

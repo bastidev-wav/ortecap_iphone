@@ -24,6 +24,8 @@ export default function AdminLayout() {
       <Stack.Screen name="instructores/[rut]/editar" options={{ title: 'Editar instructor' }} />
       <Stack.Screen name="vehiculos/index" options={{ title: 'Vehículos' }} />
       <Stack.Screen name="vehiculos/[id]" options={{ title: 'Vehículo' }} />
+      <Stack.Screen name="vehiculos/nuevo" options={{ title: 'Nuevo vehículo' }} />
+      <Stack.Screen name="vehiculos/editar/[id]" options={{ title: 'Editar vehículo' }} />
       <Stack.Screen name="vehiculos/hoja-ruta/[id]" options={{ title: 'Hoja de ruta' }} />
       <Stack.Screen name="mensajeria/index" options={{ title: 'Mensajería' }} />
       <Stack.Screen name="mensajeria/[rut]" options={{ title: 'Chat' }} />
@@ -42,6 +44,12 @@ export default function AdminLayout() {
       <Stack.Screen name="horario-referencia" options={{ title: 'Horario de referencia' }} />
       <Stack.Screen name="sesiones-abiertas" options={{ title: 'Rutas abiertas' }} />
       <Stack.Screen name="auditoria-horas" options={{ title: 'Auditoría de horas' }} />
+      <Stack.Screen name="asistente-rrss/index" options={{ title: 'Asistente RRSS' }} />
+      <Stack.Screen name="asistente-rrss/conversacion/[id]" options={{ title: 'Conversación' }} />
+      <Stack.Screen name="interesados/index" options={{ title: 'Interesados' }} />
+      <Stack.Screen name="interesados/[id]" options={{ title: 'Interesado' }} />
+      <Stack.Screen name="campanas-whatsapp/index" options={{ title: 'Campañas de WhatsApp' }} />
+      <Stack.Screen name="campanas-whatsapp/[id]" options={{ title: 'Campaña' }} />
     </Stack>
   );
 }

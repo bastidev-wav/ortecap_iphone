@@ -214,6 +214,15 @@ export const AdminRepository = {
     return dataAsMap(r);
   },
 
+  /** Crea ([id] nulo) o edita los datos básicos de un vehículo. Al editar el servidor solo cambia lo que se envía. */
+  async guardarVehiculo(params: { id?: number; datos: Record<string, unknown> }) {
+    if (params.id) {
+      await ApiClient.put(`/admin/vehiculos/${params.id}`, params.datos);
+    } else {
+      await ApiClient.post('/admin/vehiculos', params.datos);
+    }
+  },
+
   async guardarMantenimiento(vehiculoId: number, datos: Record<string, unknown>) {
     await ApiClient.post(`/admin/vehiculos/${vehiculoId}/mantenimiento`, datos);
   },
